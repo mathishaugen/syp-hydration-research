@@ -169,15 +169,31 @@ and:
 
 This copy of the skill lives in the `syp-hydration-research` GitHub repo,
 which exists solely so a scheduled cloud run can produce a brief without
-depending on any local machine being on. After saving the article, run:
+depending on any local machine being on. Cloud sandboxes for this repo
+sometimes check out a **detached HEAD** rather than `main` — check
+`git status` before committing, and if it says "HEAD detached", run
+`git checkout main` first (creating it from origin/main if needed) so the
+commit actually lands on a branch. Then:
 
 ```
 git add "Research Briefs/<the new file>"
 git commit -m "Add research brief: YYYY-MM-DD <angle>"
-git push
+git push origin HEAD:main
 ```
 
-so the new brief is available for the local sync task to pick up later.
+Using `HEAD:main` explicitly (rather than a bare `git push`) means this
+works whether or not the local branch has upstream tracking configured, so
+it won't silently fail with "you are not currently on a branch." Confirm
+with `git log --oneline origin/main -1` afterward that the push actually
+landed before reporting success — don't assume a clean exit code means it
+reached the remote.
+
+Before doing any of this, also check whether today's date already has a
+file in `Research Briefs/` from an earlier run today (same-day reruns can
+happen, e.g. a manual test plus the scheduled fire). If it does, don't
+duplicate the research — verify the existing file and Notion page are
+correct and pushed, fix anything that's out of sync, and say so plainly in
+your summary rather than writing a second brief for the same day.
 
 ## Step 6: Tell the user (or the run log, if unattended)
 
