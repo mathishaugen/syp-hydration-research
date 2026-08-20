@@ -66,10 +66,22 @@ Aim for a mix of:
   WHOOP, Oura, Levels, and any GLP-1/eldercare/longevity-tech news relevant
   to the chosen angle).
 
-Do 3-5 searches minimum, fetch the full text of the 3-5 most promising
-results rather than working off search snippets alone — snippets aren't
-enough to synthesize accurately or cite specifics. Skip anything you can't
-verify by opening the actual source.
+Do 3-5 searches minimum. **Prefer fetching full text with WebFetch** over
+working off search snippets alone — snippets aren't enough to synthesize
+accurately or cite specifics, and full text lets you verify a claim before
+citing it. Try WebFetch on the 3-5 most promising results.
+
+Some cloud-scheduled environments block WebFetch entirely (every domain
+returns `EGRESS_BLOCKED`) while WebSearch keeps working — this is an
+environment network policy, not something retrying fixes. If you hit that,
+don't burn turns retrying the same domains: fall back to synthesizing from
+WebSearch result snippets, but raise the bar to compensate —
+cross-reference each claim across 2+ independent search results before
+treating it as solid, prefer specific numbers/quotes that show up
+consistently across sources over single-source claims, and be conservative
+about anything you can't corroborate. Note in your final summary (not the
+article itself) whether this run had full WebFetch access or was
+snippet-only, so degraded runs are visible to whoever reviews the archive.
 
 If the last few briefs already covered a specific study or news item in
 depth, don't re-cover the same one — find something new, even within the
