@@ -129,7 +129,43 @@ Tone: confident, specific, a little opinionated where the evidence supports
 it — not hedging every sentence. Founders skim; make the TL;DR good enough
 to stand alone, and make the body worth reading anyway.
 
-## Step 4: Commit and push (this repo only)
+## Step 4: Publish to Notion
+
+The daily downstream consumer for this brief is the `Science Articles`
+Notion database (under Research & Science) — the `syp-carousel-pipeline`
+skill turns whatever's newest there into an Instagram carousel, so this
+step is required, not optional. Its schema is just four properties: `Name`
+(title), `Date`, `Quick Summary` (text), `File` (attachment, leave empty —
+this skill doesn't produce a separate file for it).
+
+Load the Notion tools if deferred (ToolSearch
+`select:mcp__fd5257b2-f8a1-4c9c-8f13-ee293212cdd3__notion-create-pages,mcp__fd5257b2-f8a1-4c9c-8f13-ee293212cdd3__notion-query-data-sources`).
+
+Before creating, check for a duplicate so reruns/manual runs never produce
+two rows for the same article:
+
+```sql
+SELECT url FROM "collection://3c11a731-5797-804a-a3a7-000baad3e727"
+WHERE "Name" = ?
+```
+
+(bind today's article title). If a match exists, skip creating another row
+and note that in your final summary — don't silently double-post either.
+
+Otherwise create one page via `notion-create-pages` with parent
+`{"type": "data_source_id", "data_source_id": "3c11a731-5797-804a-a3a7-000baad3e727"}`
+and:
+- `Name` — the article's full title
+- `date:Date:start` — today's date, `YYYY-MM-DD`
+- `Quick Summary` — 1-2 sentences distilled from the TL;DR. This is what
+  shows in the database table view, so it needs to stand alone without the
+  rest of the page.
+- page content — the full article body (TL;DR, The Research, Why This
+  Matters for syp, Sources) in Notion-flavored Markdown. Skip the raw YAML
+  frontmatter block, and don't repeat the title as an H1 — the `Name`
+  property already is the title.
+
+## Step 5: Commit and push (this repo only)
 
 This copy of the skill lives in the `syp-hydration-research` GitHub repo,
 which exists solely so a scheduled cloud run can produce a brief without
@@ -143,22 +179,25 @@ git push
 
 so the new brief is available for the local sync task to pick up later.
 
-## Step 5: Tell the user (or the run log, if unattended)
+## Step 6: Tell the user (or the run log, if unattended)
 
-Report the angle chosen, the file path, and a one-sentence summary of the
-headline finding. Ask if they want it read aloud/summarized in chat or if
-the saved file is enough — don't dump the full article text into chat by
-default once the file exists, to keep the conversation readable. (On an
-unattended scheduled run, just state this concisely — there's no one to ask.)
+Report the angle chosen, the Notion page, the file path, and a one-sentence
+summary of the headline finding. Ask if they want it read aloud/summarized
+in chat or if the saved article is enough — don't dump the full article
+text into chat by default once it exists, to keep the conversation
+readable. (On an unattended scheduled run, just state this concisely —
+there's no one to ask.)
 
 ## What this skill does not do
 
 - Does not schedule itself — a recurring daily run is set up separately via
   the `schedule` skill once the user is happy with sample output quality.
-- Does not publish anywhere external (no email, no Slack, no artifact) unless
-  the user asks — the saved markdown file in `Research Briefs/` (this repo)
-  or `10 Claude Code/Research Briefs/` (the local syp project drive,
-  depending on where the run happens) is the default deliverable.
+- Does not publish anywhere else external (no email, no Slack, no
+  Instagram/artifact) beyond the `Science Articles` Notion database — the
+  saved markdown file in `Research Briefs/` (this repo) or
+  `10 Claude Code/Research Briefs/` (the local syp project drive, depending
+  on where the run happens) is the archival copy; Notion is the record
+  other automation (the carousel pipeline) actually reads from.
 - Does not fabricate studies or statistics. If research on the chosen angle
   is thin this run, say so and either narrow the claim or pick a different
   angle rather than padding with unverifiable claims.
